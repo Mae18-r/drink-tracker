@@ -1,214 +1,140 @@
-import { useEffect, useRef } from 'react'
-
 /**
- * Animated SVG water glass that fills based on pct (0–1).
- * Uses a clipPath to reveal the water fill area smoothly.
+ * WaterGlass — hand-drawn SVG glass that echoes the Drunk. logo.
+ * Line-art only: strokes, no fills on the glass itself.
+ * Water fill is a clipped rect that scales from the bottom.
+ * Face (eyes + smile) sits in the lower half, always on top.
  */
 export default function WaterGlass({ pct }) {
   const clampedPct = Math.min(1, Math.max(0, pct))
 
-  // Glass dimensions (viewBox 0 0 100 160)
-  // The glass body goes from y=20 (top rim) to y=150 (bottom)
-  // Height of fillable area = 130px
-  const fillableHeight = 130
-  const fillY = 20 + fillableHeight * (1 - clampedPct)  // top of water
-  const fillHeight = fillableHeight * clampedPct
+  // Fillable area within the glass interior
+  const fillableTop = 26
+  const fillableHeight = 120
 
-  // Color interpolation: empty=sky-light → full=sky
-  const r = Math.round(91 + (91 - 91) * clampedPct)
-  const g = Math.round(188 + (188 - 188) * clampedPct)
-  const b = Math.round(255 - (255 - 180) * clampedPct)
-  const waterColor = `rgb(${r},${g},${b})`
+  // Y position of the water surface (for wave placement)
+  const fillY = fillableTop + fillableHeight * (1 - clampedPct)
+
+  // Opacity scales from 0.15 (empty) to 0.85 (full)
+  const waterOpacity = 0.15 + 0.70 * clampedPct
 
   return (
     <div className="water-glass-wrapper">
       <svg
-        className="water-glass-svg"
-        viewBox="0 0 100 160"
+        viewBox="0 0 110 160"
+        width="110"
+        height="160"
+        fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-label={`Water glass ${Math.round(clampedPct * 100)}% full`}
       >
         <defs>
-          {/* Clip path = the glass interior shape */}
+          {/*
+            Clip path matches the glass interior.
+            Slightly inset from the outer stroke path.
+          */}
           <clipPath id="glass-clip">
-            {/* Tapered glass: narrower at bottom */}
-            <path d="M14,20 L86,20 L78,150 L22,150 Z" />
+            <path d="M 14,26 C 40,24 70,24 96,26 C 95,82 89,122 85,148 C 68,150 42,150 25,148 C 21,122 15,82 14,26 Z" />
           </clipPath>
-
-          {/* Wave gradient */}
-          <linearGradient id="water-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#5BBCFF" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#2E9FE8" stopOpacity="1" />
-          </linearGradient>
-
-          {/* Shine gradient */}
-          <linearGradient id="glass-shine" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stopColor="#fff" stopOpacity="0.08" />
-            <stop offset="30%"  stopColor="#fff" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#fff" stopOpacity="0.03" />
-          </linearGradient>
         </defs>
 
-        {/* ── Glass body background ── */}
-        <path
-          d="M14,20 L86,20 L78,150 L22,150 Z"
-          fill="#EAF5FF"
-          stroke="none"
-        />
-
-        {/* ── Water fill group (clipped to glass) ── */}
+        {/* ── Water fill group (clipped to glass interior) ── */}
         <g clipPath="url(#glass-clip)">
-          {/* Static water rectangle */}
+          {/*
+            Full-height rect scaled from the bottom.
+            transformBox + transformOrigin make scaleY grow upward.
+          */}
           <rect
-            x="0"
-            y={fillY}
-            width="100"
-            height={fillHeight + 10}
-            fill="url(#water-grad)"
-            style={{ transition: 'y 0.9s cubic-bezier(0.34,1.56,0.64,1), height 0.9s cubic-bezier(0.34,1.56,0.64,1)' }}
+            x="-5"
+            y={fillableTop}
+            width="120"
+            height={fillableHeight}
+            fill="var(--color-blue)"
+            opacity={waterOpacity}
+            style={{
+              transformBox: 'fill-box',
+              transformOrigin: 'bottom center',
+              transform: `scaleY(${clampedPct})`,
+              transition:
+                'transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.6s ease',
+            }}
           />
 
-          {/* Animated wave on top of water */}
+          {/* Water surface wave — only rendered when there's some water */}
           {clampedPct > 0.02 && (
-            <g style={{ transform: `translateY(${fillY - 8}px)`, transition: 'transform 0.9s cubic-bezier(0.34,1.56,0.64,1)' }}>
-              <WavePath />
+            <g
+              style={{
+                transform: `translateY(${fillY - 5}px)`,
+                transition: 'transform 0.6s cubic-bezier(0.34,1.56,0.64,1)',
+              }}
+            >
+              {/*
+                Wide wave path (160px) so horizontal oscillation
+                never reveals a gap at the edges inside the clip.
+              */}
+              <path
+                className="wave-surface"
+                d="M -25,0 C -10,-4 8,4 24,0 C 40,-4 56,4 72,0 C 88,-4 104,4 120,0 C 136,-4 152,4 168,0 L 168,10 L -25,10 Z"
+                fill="var(--color-blue)"
+                opacity="0.45"
+              />
             </g>
           )}
-
-          {/* Bubble particles */}
-          {clampedPct > 0.05 && (
-            <>
-              <Bubble x={35} delay={0} fillY={fillY} />
-              <Bubble x={62} delay={0.8} fillY={fillY} />
-              <Bubble x={48} delay={1.4} fillY={fillY} />
-            </>
-          )}
-
-          {/* Shine shimmer on water */}
-          <rect
-            x="0" y={fillY} width="100" height={fillHeight}
-            fill="url(#glass-shine)"
-            style={{ transition: 'y 0.9s cubic-bezier(0.34,1.56,0.64,1), height 0.9s cubic-bezier(0.34,1.56,0.64,1)' }}
-          />
         </g>
 
-        {/* ── Glass outline ── */}
+        {/*
+          ── Glass outer outline ──
+          Single <path> — slightly trapezoidal with gentle imperfect
+          bezier curves for a hand-drawn, sketchy feel.
+          Wider at top (~90px), narrower at bottom (~64px).
+        */}
         <path
-          d="M14,20 L86,20 L78,150 L22,150 Z"
-          fill="none"
-          stroke="#B8D8F0"
+          d="M 10,24
+             C 40,22 70,22 100,24
+             C 99,82 91,124 87,150
+             C 70,153 40,153 23,150
+             C 19,124 11,82 10,24
+             Z"
+          stroke="var(--color-blue)"
           strokeWidth="2.5"
+          strokeLinecap="round"
           strokeLinejoin="round"
         />
 
-        {/* ── Rim ── */}
-        <rect x="10" y="16" width="80" height="8" rx="4" fill="#D0E8F8" />
+        {/*
+          ── Face ──
+          Always rendered on top of water fill.
+          Sits in the lower half of the glass.
+          Eyes: two short vertical dashes.
+          Smile: a gentle upward curve.
+        */}
 
-        {/* ── Glass shine overlay ── */}
-        <path
-          d="M18,24 L26,144"
-          stroke="#fff"
-          strokeWidth="3"
+        {/* Left eye */}
+        <line
+          x1="40" y1="110"
+          x2="40" y2="118"
+          stroke="var(--color-blue)"
+          strokeWidth="2"
           strokeLinecap="round"
-          opacity="0.5"
-        />
-        <path
-          d="M24,24 L30,100"
-          stroke="#fff"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.3"
         />
 
-        {/* ── Percentage text inside glass ── */}
-        {clampedPct > 0 && (
-          <text
-            x="50"
-            y={Math.max(fillY + 18, 140)}
-            textAnchor="middle"
-            fontSize="11"
-            fontFamily="'DM Mono', monospace"
-            fontWeight="500"
-            fill={clampedPct > 0.15 ? '#fff' : '#5BBCFF'}
-            opacity="0.9"
-            style={{ transition: 'y 0.9s cubic-bezier(0.34,1.56,0.64,1)' }}
-          >
-            {Math.round(clampedPct * 100)}%
-          </text>
-        )}
+        {/* Right eye */}
+        <line
+          x1="66" y1="110"
+          x2="66" y2="118"
+          stroke="var(--color-blue)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+
+        {/* Smile */}
+        <path
+          d="M 40,127 Q 53,137 66,127"
+          stroke="var(--color-blue)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+        />
       </svg>
     </div>
-  )
-}
-
-/* Repeating animated wave */
-function WavePath() {
-  return (
-    <svg width="200" height="16" viewBox="0 0 200 16" overflow="visible">
-      <style>{`
-        @keyframes waveMove {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-100px); }
-        }
-        .wave-anim {
-          animation: waveMove 2s linear infinite;
-        }
-      `}</style>
-      <g className="wave-anim">
-        {/* Two copies side-by-side so the loop is seamless */}
-        <path
-          d="M0,8 C12,2 26,14 40,8 C54,2 66,14 80,8 C94,2 106,14 120,8 C134,2 146,14 160,8 C174,2 186,14 200,8 L200,16 L0,16 Z"
-          fill="rgba(255,255,255,0.35)"
-        />
-        <path
-          d="M0,10 C12,4 26,16 40,10 C54,4 66,16 80,10 C94,4 106,16 120,10 C134,4 146,16 160,10 C174,4 186,16 200,10 L200,16 L0,16 Z"
-          fill="rgba(255,255,255,0.2)"
-        />
-      </g>
-    </svg>
-  )
-}
-
-/* Floating bubble */
-function Bubble({ x, delay, fillY }) {
-  const style = {
-    '--bx': `${x}px`,
-    '--by': `${fillY + 10}px`,
-    '--delay': `${delay}s`,
-  }
-  return (
-    <circle
-      cx={x}
-      cy={fillY + 20}
-      r="2.5"
-      fill="rgba(255,255,255,0.5)"
-      style={{
-        ...style,
-        animation: `bubbleRise 2.5s ease-in ${delay}s infinite`,
-      }}
-    >
-      <style>{`
-        @keyframes bubbleRise {
-          0%   { cy: ${fillY + 40}; opacity: 0.7; r: 2.5; }
-          80%  { opacity: 0.4; }
-          100% { cy: ${fillY + 2};  opacity: 0;   r: 1.5; }
-        }
-      `}</style>
-      <animate
-        attributeName="cy"
-        from={fillY + 40}
-        to={fillY + 2}
-        dur="2.5s"
-        begin={`${delay}s`}
-        repeatCount="indefinite"
-        calcMode="ease-in"
-      />
-      <animate
-        attributeName="opacity"
-        values="0;0.7;0.4;0"
-        dur="2.5s"
-        begin={`${delay}s`}
-        repeatCount="indefinite"
-      />
-    </circle>
   )
 }

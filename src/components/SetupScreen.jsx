@@ -73,15 +73,13 @@ export default function SetupScreen({ onComplete }) {
     <div className="setup-screen">
       {/* Hero */}
       <div className="setup-hero">
-        <span className="setup-logo-badge">drink.</span>
-        <div className="setup-emoji">💧</div>
-        <h1 className="setup-title">Stay hydrated,<br />feel amazing.</h1>
-        <p className="setup-subtitle">Let's set up your daily routine in 30 seconds.</p>
+        <img src="/Logo_Drunk_app.png" alt="Drunk." className="logo" />
+        <h1 className="setup-title">let's get you hydrated.</h1>
       </div>
 
       {/* Goal Card */}
       <div className="setup-card">
-        <p className="setup-card-title">What's your daily water goal?</p>
+        <p className="setup-card-title">how much water are you aiming for today?</p>
 
         {/* Unit Toggle */}
         <div className="unit-toggle">
@@ -114,7 +112,7 @@ export default function SetupScreen({ onComplete }) {
 
         {/* Custom */}
         <div className="input-group">
-          <label>Or enter custom amount</label>
+          <label>or enter custom amount</label>
           <input
             className="input-field"
             type="number"
@@ -131,7 +129,7 @@ export default function SetupScreen({ onComplete }) {
 
       {/* Vessel Card */}
       <div className="setup-card">
-        <p className="setup-card-title">What's your vessel?</p>
+        <p className="setup-card-title">what are you drinking from?</p>
 
         {/* Vessel Presets */}
         <div className="vessel-chips">
@@ -152,17 +150,17 @@ export default function SetupScreen({ onComplete }) {
         {/* Custom vessel */}
         <div className="custom-input-row">
           <div className="input-group">
-            <label>Custom name</label>
+            <label>name it</label>
             <input
               className="input-field"
               type="text"
-              placeholder='e.g. "Stanley Cup"'
+              placeholder="my beloved Stanley, my sad office mug..."
               value={vesselName}
               onChange={(e) => setVesselName(e.target.value)}
             />
           </div>
-          <div className="input-group" style={{ maxWidth: '100px' }}>
-            <label>{unit === 'oz' ? 'Oz' : 'ml'}</label>
+          <div className="input-group" style={{ maxWidth: '90px' }}>
+            <label>{unit === 'oz' ? 'oz' : 'ml'}</label>
             <input
               className="input-field"
               type="number"
@@ -180,7 +178,7 @@ export default function SetupScreen({ onComplete }) {
 
       {/* CTA */}
       <button className="cta-btn" onClick={handleSubmit} disabled={!canSubmit}>
-        Let's go →
+        I'm ready, let's go →
       </button>
     </div>
   )

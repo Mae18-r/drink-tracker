@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import WaterGlass from './WaterGlass.jsx'
 import WeekStrip from './WeekStrip.jsx'
 import BenefitCard from './BenefitCard.jsx'
 import { getTodayKey } from '../App.jsx'
-
-const CONFETTI_COLORS = ['#FF6B5B', '#5BBCFF', '#FFCA3A', '#4ECDC4', '#FF8B94', '#A8E6CF']
 
 export default function Dashboard({ config, history, onUpdateHistory, onReset }) {
   const todayKey = getTodayKey()
@@ -12,7 +10,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const pct = config.goal > 0 ? todayAmount / config.goal : 0
 
   const [showSettings, setShowSettings] = useState(false)
-  const [confetti, setConfetti] = useState([])
+  const [showBurst, setShowBurst] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
   const prevPct = useRef(pct)
 
@@ -23,29 +21,16 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
     }
   }, [todayKey]) // eslint-disable-line
 
-  // Trigger confetti when goal first reached
+  // Trigger celebration burst when goal first reached
   useEffect(() => {
     if (prevPct.current < 1 && pct >= 1) {
       setJustCompleted(true)
-      spawnConfetti()
+      setShowBurst(true)
+      setTimeout(() => setShowBurst(false), 800)
       setTimeout(() => setJustCompleted(false), 4000)
     }
     prevPct.current = pct
   }, [pct])
-
-  const spawnConfetti = () => {
-    const pieces = Array.from({ length: 40 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-      delay: Math.random() * 0.8,
-      size: 6 + Math.random() * 8,
-      duration: 1.2 + Math.random() * 0.8,
-      rotate: Math.random() * 360,
-    }))
-    setConfetti(pieces)
-    setTimeout(() => setConfetti([]), 2500)
-  }
 
   const handleDrink = () => {
     const updated = { ...history, [todayKey]: todayAmount + config.vesselSize }
@@ -68,6 +53,13 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const remaining = Math.max(0, config.goal - todayAmount)
   const vesselsLeft = remaining > 0 ? Math.ceil(remaining / config.vesselSize) : 0
 
+  // Status message
+  const getStatusMessage = () => {
+    if (todayAmount === 0) return "nothing yet. your body is waiting."
+    if (vesselsLeft <= 2) return "so close. don't give up now."
+    return "you've got this. probably."
+  }
+
   // Format amount for display
   const displayAmount = (val) => {
     if (config.unit === 'oz') return `${val} oz`
@@ -79,24 +71,11 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
 
   return (
     <>
-      {/* Confetti overlay */}
-      {confetti.length > 0 && (
-        <div className="confetti-container" aria-hidden="true">
-          {confetti.map(p => (
-            <div
-              key={p.id}
-              className="confetti-piece"
-              style={{
-                left: `${p.x}%`,
-                width: p.size,
-                height: p.size,
-                background: p.color,
-                animationDelay: `${p.delay}s`,
-                animationDuration: `${p.duration}s`,
-                transform: `rotate(${p.rotate}deg)`,
-                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-              }}
-            />
+      {/* CSS-only celebration burst */}
+      {showBurst && (
+        <div className="burst-container" aria-hidden="true">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className={`burst-dot burst-dot-${i}`} />
           ))}
         </div>
       )}
@@ -104,7 +83,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
       <div className="dashboard">
         {/* App Bar */}
         <div className="app-bar">
-          <span className="app-logo-badge">drink.</span>
+          <img src="/Logo_Drunk_app.png" alt="Drunk." className="logo" />
           <button
             className="settings-btn"
             onClick={() => setShowSettings(true)}
@@ -129,7 +108,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
             }
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <div
               className="progress-bar-wrap"
               style={{ width: 200 }}
@@ -143,21 +122,18 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
                 style={{ width: `${Math.min(100, Math.round(pct * 100))}%` }}
               />
             </div>
-            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>
+            <p style={{ fontSize: 12, color: 'var(--color-ink-muted)', fontWeight: 600 }}>
               of {displayAmount(config.goal)} goal
             </p>
           </div>
 
           {pct >= 1 ? (
-            <p className={`goal-status complete ${justCompleted ? '' : ''}`}>
-              🎉 Goal reached! Amazing work!
-            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <p className="celebration-heading">you actually did it.</p>
+              <p className="celebration-sub">your kidneys are throwing a little party right now.</p>
+            </div>
           ) : (
-            <p className="goal-status">
-              {vesselsLeft > 0
-                ? `${vesselsLeft} more ${config.vesselName}${vesselsLeft !== 1 ? 's' : ''} to go`
-                : 'Almost there!'}
-            </p>
+            <p className="goal-status">{getStatusMessage()}</p>
           )}
         </div>
 
@@ -171,7 +147,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
             onClick={handleUndo}
             disabled={todayAmount === 0}
           >
-            ↩ Undo last drink
+            wait, I lied ↩
           </button>
         </div>
 
@@ -243,16 +219,22 @@ function SettingsModal({ config, onClose, onReset }) {
 
 function InfoRow({ label, value }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-      <span style={{ fontSize: 14, color: 'var(--text-2)', fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{value}</span>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '12px 0',
+      borderBottom: '1px solid var(--color-border)',
+    }}>
+      <span style={{ fontSize: 14, color: 'var(--color-ink-soft)', fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-ink)' }}>{value}</span>
     </div>
   )
 }
 
 function SettingsIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>

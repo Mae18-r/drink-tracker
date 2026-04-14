@@ -96,7 +96,7 @@ input { font-family: var(--font-body); }
 
 /* Setup screen: large design logo */
 .logo-large {
-  height: 120px;
+  height: 200px;
   width: auto;
   display: block;
   margin: 0 auto 32px auto;
@@ -107,7 +107,7 @@ input { font-family: var(--font-body); }
 
 /* Dashboard app bar: compact simple logo */
 .logo-small {
-  height: 36px;
+  height: 64px;
   width: auto;
   display: block;
   object-fit: contain;

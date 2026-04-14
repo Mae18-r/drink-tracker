@@ -4,8 +4,20 @@
  * Water fill is a clipped rect that scales from the bottom.
  * Face (eyes + smile) sits in the lower half, always on top.
  */
-export default function WaterGlass({ pct }) {
+import { useState, useEffect, useRef } from 'react'
+
+export default function WaterGlass({ pct, logCount }) {
   const clampedPct = Math.min(1, Math.max(0, pct))
+  const [sloshing, setSloshing] = useState(false)
+  const prevLogCount = useRef(logCount)
+
+  useEffect(() => {
+    if (logCount !== prevLogCount.current) {
+      prevLogCount.current = logCount
+      setSloshing(true)
+      setTimeout(() => setSloshing(false), 800)
+    }
+  }, [logCount])
 
   // Fillable area within the glass interior
   const fillableTop = 26
@@ -55,7 +67,7 @@ export default function WaterGlass({ pct }) {
               transformOrigin: 'bottom center',
               transform: `scaleY(${clampedPct})`,
               transition:
-                'transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.6s ease',
+                'transform 0.7s cubic-bezier(0.34,1.56,0.64,1), opacity 0.7s ease',
             }}
           />
 
@@ -64,7 +76,7 @@ export default function WaterGlass({ pct }) {
             <g
               style={{
                 transform: `translateY(${fillY - 5}px)`,
-                transition: 'transform 0.6s cubic-bezier(0.34,1.56,0.64,1)',
+                transition: 'transform 0.7s cubic-bezier(0.34,1.56,0.64,1)',
               }}
             >
               {/*
@@ -72,7 +84,7 @@ export default function WaterGlass({ pct }) {
                 never reveals a gap at the edges inside the clip.
               */}
               <path
-                className="wave-surface"
+                className={`wave-surface${sloshing ? ' sloshing' : ''}`}
                 d="M -25,0 C -10,-4 8,4 24,0 C 40,-4 56,4 72,0 C 88,-4 104,4 120,0 C 136,-4 152,4 168,0 L 168,10 L -25,10 Z"
                 fill="var(--color-blue)"
                 opacity="0.45"
@@ -95,7 +107,7 @@ export default function WaterGlass({ pct }) {
              C 19,124 11,82 10,24
              Z"
           stroke="var(--color-blue)"
-          strokeWidth="2.5"
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />

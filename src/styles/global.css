@@ -12,10 +12,11 @@
   --color-blue: #3148e9;
   --color-blue-light: #dce1fd;
   --color-blue-mid: #8f9ef5;
+  --color-accent: #5170ff;        /* decorative highlights: drops, today ring, stat values */
   --color-ink: #3b3b3b;
   --color-ink-soft: #6b6b6b;
   --color-ink-muted: #b0b0b0;
-  --color-success: #2dd4a7;
+  --color-success: #2dd4a7;       /* kept as variable, not used in UI */
   --color-surface: #ffffff;
   --color-border: #e8e8e6;
 
@@ -94,6 +95,18 @@ input { font-family: var(--font-body); }
 }
 
 /* ============================================================
+   BACKGROUND SWIRLS  (Fix 1)
+   ============================================================ */
+
+.bg-swirls-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;       /* sits behind all page content */
+  overflow: hidden;
+}
+
+/* ============================================================
    ANIMATIONS
    ============================================================ */
 
@@ -119,12 +132,26 @@ input { font-family: var(--font-body); }
   100% { transform: scale(1); }
 }
 
-/* Water surface wave */
+/* ── Water surface: idle gentle wave ── */
 @keyframes waveSurface {
   0%, 100% { transform: translateX(0); }
   50%       { transform: translateX(-12px); }
 }
 .wave-surface { animation: waveSurface 3s ease-in-out infinite; }
+
+/* ── Water surface: sloshing on each log (Fix 2) ── */
+@keyframes waveSloshing {
+  0%   { transform: translateX(0); }
+  18%  { transform: translateX(-20px); }
+  42%  { transform: translateX(16px); }
+  62%  { transform: translateX(-11px); }
+  82%  { transform: translateX(7px); }
+  100% { transform: translateX(0); }
+}
+/* Higher specificity overrides idle wave cleanly */
+.wave-surface.sloshing {
+  animation: waveSloshing 800ms ease-in-out forwards;
+}
 
 /* ── Celebration: full-screen blue flash ── */
 @keyframes flashPulse {
@@ -133,17 +160,26 @@ input { font-family: var(--font-body); }
   100% { opacity: 0; }
 }
 
-/* ── Celebration: banner slide-down ── */
+/* ── Celebration: banner slide-down (Fix 3) ── */
 @keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
+  from { transform: translateY(-16px); opacity: 0; }
   to   { transform: translateY(0);     opacity: 1; }
 }
 
-/* ── Celebration: water drop burst ── */
+/* ── Celebration: water drop burst — 10 drops, 36° apart (Fix 3) ── */
 @keyframes dropBurst {
-  0%   { opacity: 1; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(0px)   scale(0); }
-  70%  { opacity: 1; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-50px) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-60px) scale(0.7); }
+  0%   {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(0px)   scale(0)   rotate(0deg);
+  }
+  70%  {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-60px) scale(1)   rotate(20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-70px) scale(0.7) rotate(20deg);
+  }
 }
 
 @keyframes dropsContainerFade {
@@ -162,6 +198,8 @@ input { font-family: var(--font-body); }
   max-width: 390px;
   margin: 0 auto;
   padding: 0 20px;
+  /* sit above z-index: -1 swirls without needing explicit z-index */
+  position: relative;
 }
 
 /* ============================================================
@@ -306,7 +344,6 @@ input { font-family: var(--font-body); }
 }
 
 .input-field:focus { border-color: var(--color-blue); }
-
 .input-field::placeholder { color: var(--color-ink-muted); font-weight: 400; }
 
 /* Vessel Chips */
@@ -366,9 +403,12 @@ input { font-family: var(--font-body); }
   animation: fadeUp 0.4s ease 320ms both;
 }
 
-.cta-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25); }
+/* Fix 5: accent hover glow */
+.cta-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(81, 112, 255, 0.3);
+}
 .cta-btn:active { transform: scale(0.98); }
-
 .cta-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -431,57 +471,61 @@ input { font-family: var(--font-body); }
   animation: flashPulse 600ms ease-out forwards;
 }
 
-/* ── Celebration: banner ── */
+/* ── Celebration: banner (Fix 3) ── */
 .celebration-banner {
   background: var(--color-blue-light);
-  border: 1.5px solid var(--color-blue);
+  border: 2px solid var(--color-blue);
   border-radius: var(--radius-lg);
-  padding: 20px 24px;
+  padding: 18px 24px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: slideDown 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   margin-top: var(--space-lg);
 }
 
-/* Display font: Jua + blue */
+/* Display font: Jua + blue, 22px (Fix 3) */
 .celebration-heading {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 22px;
   color: var(--color-blue);
   line-height: 1.1;
 }
 
 .celebration-sub {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 14px;
   color: var(--color-ink);
   line-height: 1.5;
 }
 
-/* ── Celebration: water drop burst ── */
+/* ── Celebration: 10-drop water burst container (Fix 3 + Fix 5) ── */
 .drops-container {
   position: fixed;
   top: 40%;
   left: 50%;
   pointer-events: none;
   z-index: 101;
-  animation: dropsContainerFade 300ms ease-out 1200ms forwards;
+  /* fade starts at 1400ms (after last drop finishes at ~540+700=1240ms) */
+  animation: dropsContainerFade 300ms ease-out 1400ms forwards;
 }
 
 .water-drop {
   position: absolute;
-  animation: dropBurst 600ms ease-out forwards;
+  animation: dropBurst 700ms ease-out forwards;
 }
 
-.drop-1 { --drop-angle: 0deg;   animation-delay: 0ms;   }
-.drop-2 { --drop-angle: 45deg;  animation-delay: 40ms;  }
-.drop-3 { --drop-angle: 90deg;  animation-delay: 80ms;  }
-.drop-4 { --drop-angle: 135deg; animation-delay: 120ms; }
-.drop-5 { --drop-angle: 180deg; animation-delay: 160ms; }
-.drop-6 { --drop-angle: 225deg; animation-delay: 200ms; }
-.drop-7 { --drop-angle: 270deg; animation-delay: 240ms; }
-.drop-8 { --drop-angle: 315deg; animation-delay: 280ms; }
+/* 10 drops at 36° intervals, 60ms stagger (Fix 3) */
+.drop-1  { --drop-angle: 0deg;   animation-delay: 0ms;   }
+.drop-2  { --drop-angle: 36deg;  animation-delay: 60ms;  }
+.drop-3  { --drop-angle: 72deg;  animation-delay: 120ms; }
+.drop-4  { --drop-angle: 108deg; animation-delay: 180ms; }
+.drop-5  { --drop-angle: 144deg; animation-delay: 240ms; }
+.drop-6  { --drop-angle: 180deg; animation-delay: 300ms; }
+.drop-7  { --drop-angle: 216deg; animation-delay: 360ms; }
+.drop-8  { --drop-angle: 252deg; animation-delay: 420ms; }
+.drop-9  { --drop-angle: 288deg; animation-delay: 480ms; }
+.drop-10 { --drop-angle: 324deg; animation-delay: 540ms; }
 
 /* Water Glass Section */
 .glass-section {
@@ -552,15 +596,19 @@ input { font-family: var(--font-body); }
   font-weight: 600;
   font-size: var(--text-base);
   border: none;
-  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
 }
 
-.drink-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25); }
+/* Fix 5: accent hover glow */
+.drink-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(81, 112, 255, 0.3);
+}
 .drink-btn:active { transform: scale(0.98); }
 
-/* Done state — goal reached */
+/* Fix 3: done state — stays blue, dimmed, frozen */
 .drink-btn-done {
-  background: var(--color-success);
+  opacity: 0.6;
   cursor: default;
   pointer-events: none;
 }
@@ -582,7 +630,7 @@ input { font-family: var(--font-body); }
 .undo-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ============================================================
-   WATER GLASS SVG
+   WATER GLASS SVG  (Fix 2)
    ============================================================ */
 
 .water-glass-wrapper {
@@ -632,8 +680,9 @@ input { font-family: var(--font-body); }
   transition: all var(--transition);
 }
 
+/* Fix 5: today ring uses --color-accent */
 .day-pill.today {
-  border: 2px solid var(--color-blue);
+  border: 2px solid var(--color-accent);
   background: var(--color-surface);
 }
 
@@ -644,7 +693,7 @@ input { font-family: var(--font-body); }
 
 .day-pill.goal-met .day-pill-name { color: rgba(255, 255, 255, 0.8); }
 .day-pill.goal-met .day-pill-icon { color: #fff; }
-.day-pill.goal-met.today { border: 2px solid var(--color-blue); }
+.day-pill.goal-met.today { border: 2px solid var(--color-accent); }
 
 .day-pill-name {
   font-family: var(--font-body);
@@ -655,7 +704,8 @@ input { font-family: var(--font-body); }
   text-transform: uppercase;
 }
 
-.day-pill.today .day-pill-name { color: var(--color-blue); }
+/* Fix 5: today label uses accent */
+.day-pill.today .day-pill-name { color: var(--color-accent); }
 
 .day-pill-icon {
   font-family: var(--font-body);
@@ -672,7 +722,7 @@ input { font-family: var(--font-body); }
   background: var(--color-border);
 }
 
-.day-pill.today .day-pill-dot { background: var(--color-blue); }
+.day-pill.today .day-pill-dot { background: var(--color-accent); }
 
 /* ============================================================
    STATS ROW
@@ -697,11 +747,12 @@ input { font-family: var(--font-body); }
   text-align: center;
 }
 
+/* Fix 5: stat values use --color-accent */
 .stat-chip-value {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: var(--text-lg);
-  color: var(--color-blue);
+  color: var(--color-accent);
   line-height: 1;
 }
 
@@ -818,7 +869,7 @@ input { font-family: var(--font-body); }
 .modal-reset-btn:hover {
   background: var(--color-blue);
   color: #fff;
-  box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25);
+  box-shadow: 0 4px 20px rgba(81, 112, 255, 0.3);
 }
 
 /* ============================================================

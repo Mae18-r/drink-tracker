@@ -13,6 +13,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const [celebrating, setCelebrating] = useState(false)
   const [showFlash, setShowFlash] = useState(false)
   const [showDrops, setShowDrops] = useState(false)
+  const [logCount, setLogCount] = useState(0)
   const prevPct = useRef(pct)
 
   // Ensure today exists in history
@@ -30,8 +31,8 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
       setShowDrops(true)
       // Flash: remove from DOM after animation completes (650ms)
       setTimeout(() => setShowFlash(false), 650)
-      // Drops: CSS fades them at 1200ms, remove from DOM at 1500ms
-      setTimeout(() => setShowDrops(false), 1500)
+      // Drops: CSS fades them at 1400ms, remove from DOM at 1700ms
+      setTimeout(() => setShowDrops(false), 1700)
     }
     prevPct.current = pct
   }, [pct])
@@ -39,6 +40,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const handleDrink = () => {
     const updated = { ...history, [todayKey]: todayAmount + config.vesselSize }
     onUpdateHistory(updated)
+    setLogCount(c => c + 1)
   }
 
   const handleUndo = () => {
@@ -59,9 +61,9 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
 
   const getStatusMessage = () => {
     if (pct >= 1) return null
-    if (todayAmount === 0) return "nothing yet. your body is waiting."
-    if (vesselsLeft <= 2) return "so close. don't give up now."
-    return "you've got this. probably."
+    if (todayAmount === 0) return "the glass is half empty. literally."
+    if (vesselsLeft <= 2) return "one more sip away from glory."
+    return "you've got this. we believe in you. mostly."
   }
 
   const displayAmount = (val) => {
@@ -80,17 +82,17 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
       {/* ── Water drop burst (8 teardrop SVGs) ── */}
       {showDrops && (
         <div className="drops-container" aria-hidden="true">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
             <div key={i} className={`water-drop drop-${i}`}>
               <svg
-                width="8" height="12"
-                viewBox="0 0 8 12"
+                width="7" height="10"
+                viewBox="0 0 7 10"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M4,0 C4,0 8,5.5 8,8 C8,10.2 6.2,12 4,12 C1.8,12 0,10.2 0,8 C0,5.5 4,0 4,0 Z"
-                  fill="#3148e9"
+                  d="M3.5,0 C3.5,0 7,4.8 7,7 C7,8.9 5.4,10 3.5,10 C1.6,10 0,8.9 0,7 C0,4.8 3.5,0 3.5,0 Z"
+                  fill="var(--color-accent)"
                 />
               </svg>
             </div>
@@ -117,13 +119,13 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
         {celebrating && (
           <div className="celebration-banner">
             <p className="celebration-heading">you actually did it.</p>
-            <p className="celebration-sub">your kidneys are throwing a little party right now.</p>
+            <p className="celebration-sub">today's you &gt; yesterday's you.</p>
           </div>
         )}
 
         {/* Water Glass + Amount */}
         <div className="glass-section">
-          <WaterGlass pct={pct} />
+          <WaterGlass pct={pct} logCount={logCount} />
 
           <div className="water-amount">
             {config.unit === 'oz'
@@ -162,7 +164,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
             className={`drink-btn${celebrating ? ' drink-btn-done' : ''}`}
             onClick={handleDrink}
           >
-            {celebrating ? "you're done for today." : `+ I drank my ${config.vesselName}`}
+            {celebrating ? "you're done. come back tomorrow." : `+ I drank my ${config.vesselName}`}
           </button>
           <button
             className="undo-btn"

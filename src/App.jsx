@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import SetupScreen from './components/SetupScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
+import BackgroundSwirls from './components/BackgroundSwirls.jsx'
 
 const STORAGE_KEY = 'drink_tracker_data'
 
@@ -50,23 +51,21 @@ export default function App() {
 
   if (!ready) return null
 
-  if (!appData?.config) {
-    return (
-      <div className="app-wrapper">
-        <SetupScreen onComplete={handleSetupComplete} />
-      </div>
-    )
-  }
-
   return (
-    <div className="app-wrapper">
-      <Dashboard
-        config={appData.config}
-        history={appData.history}
-        onUpdateHistory={handleUpdateHistory}
-        onReset={handleReset}
-      />
-    </div>
+    <>
+      <BackgroundSwirls />
+      <div className="app-wrapper">
+        {!appData?.config
+          ? <SetupScreen onComplete={handleSetupComplete} />
+          : <Dashboard
+              config={appData.config}
+              history={appData.history}
+              onUpdateHistory={handleUpdateHistory}
+              onReset={handleReset}
+            />
+        }
+      </div>
+    </>
   )
 }
 

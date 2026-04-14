@@ -17,7 +17,10 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const [glassPopping, setGlassPopping] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [logCount, setLogCount] = useState(0)
+  const [fillMsg, setFillMsg] = useState(() => getFillMessage(Math.round(pct * 100)))
+  const [msgVisible, setMsgVisible] = useState(true)
   const prevPct = useRef(pct)
+  const prevMsgRef = useRef(fillMsg)
 
   // Ensure today exists in history
   useEffect(() => {
@@ -46,6 +49,20 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
     prevPct.current = pct
   }, [pct])
 
+  // Fade fill message on each pct change
+  useEffect(() => {
+    const newMsg = getFillMessage(Math.round(pct * 100))
+    if (newMsg !== prevMsgRef.current) {
+      setMsgVisible(false)
+      const t = setTimeout(() => {
+        setFillMsg(newMsg)
+        prevMsgRef.current = newMsg
+        setMsgVisible(true)
+      }, 400)
+      return () => clearTimeout(t)
+    }
+  }, [pct])
+
   const handleDrink = () => {
     const updated = { ...history, [todayKey]: todayAmount + config.vesselSize }
     onUpdateHistory(updated)
@@ -64,24 +81,13 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const goalsHit = weekAmounts.filter(v => v >= config.goal).length
   const weekAvg = Math.round(weekTotal / 7)
 
-  // Vessels remaining
-  const remaining = Math.max(0, config.goal - todayAmount)
-  const vesselsLeft = remaining > 0 ? Math.ceil(remaining / config.vesselSize) : 0
-
-  const getStatusMessage = () => {
-    if (pct >= 1) return null
-    if (todayAmount === 0) return "the glass is half empty. literally."
-    if (vesselsLeft <= 2) return "one more sip away from glory."
-    return "you've got this. we believe in you. mostly."
-  }
-
   const displayAmount = (val) => {
     if (config.unit === 'oz') return `${val} oz`
     if (val >= 1000) return `${(val / 1000).toFixed(1).replace(/\.0$/, '')} L`
     return `${val} ml`
   }
 
-  const statusMsg = getStatusMessage()
+  const isFinalMsg = fillMsg.startsWith('congrats')
 
   return (
     <>
@@ -169,7 +175,9 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
             </p>
           </div>
 
-          {statusMsg && <p className="goal-status">{statusMsg}</p>}
+          <p className={`fill-message${!msgVisible ? ' fill-message-hidden' : ''}${isFinalMsg ? ' fill-message-final' : ''}`}>
+            {fillMsg}
+          </p>
         </div>
 
         {/* Drink CTA */}
@@ -277,6 +285,17 @@ function SettingsIcon() {
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>
   )
+}
+
+function getFillMessage(percent) {
+  if (percent === 0)                         return "a good day starts with water."
+  if (percent < 25)                          return "every drop counts."
+  if (percent < 50)                          return "look at you, hydrating like a responsible adult."
+  if (percent < 70)                          return "your future self is already impressed."
+  if (percent < 85)                          return "halfway there. the glass is literally half full."
+  if (percent < 99)                          return "almost. do not let that glass down."
+  if (percent >= 99 && percent < 100)        return "you're literally one sip away from your goal."
+  return "congrats, you're drunk! ...in the best way possible."
 }
 
 function formatDate(dateKey) {

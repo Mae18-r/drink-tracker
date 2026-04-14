@@ -73,7 +73,7 @@ export default function SetupScreen({ onComplete }) {
     <div className="setup-screen">
       {/* Hero */}
       <div className="setup-hero">
-        <img src="/Logo_Drunk_app.png" alt="Drunk." className="logo" />
+        <img src="/drunk logo design trans.png" alt="Drunk." className="logo-large" />
         <h1 className="setup-title">let's get you hydrated.</h1>
       </div>
 

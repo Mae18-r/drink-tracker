@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import WaterGlass from './WaterGlass.jsx'
+import Confetti from './Confetti.jsx'
 import WeekStrip from './WeekStrip.jsx'
 import BenefitCard from './BenefitCard.jsx'
 import { getTodayKey } from '../App.jsx'
@@ -13,6 +14,8 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const [celebrating, setCelebrating] = useState(false)
   const [showFlash, setShowFlash] = useState(false)
   const [showDrops, setShowDrops] = useState(false)
+  const [glassPopping, setGlassPopping] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const [logCount, setLogCount] = useState(0)
   const prevPct = useRef(pct)
 
@@ -29,8 +32,14 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
       setCelebrating(true)
       setShowFlash(true)
       setShowDrops(true)
+      setGlassPopping(true)
+      setShowConfetti(true)
       // Flash: remove from DOM after animation completes (650ms)
       setTimeout(() => setShowFlash(false), 650)
+      // Glass pop: remove class after 800ms so it can replay if needed
+      setTimeout(() => setGlassPopping(false), 800)
+      // Confetti: unmount after 1400ms
+      setTimeout(() => setShowConfetti(false), 1400)
       // Drops: CSS fades them at 1400ms, remove from DOM at 1700ms
       setTimeout(() => setShowDrops(false), 1700)
     }
@@ -103,7 +112,7 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
       <div className="dashboard">
         {/* App Bar */}
         <div className="app-bar">
-          <img src="/Logo_Drunk_app.png" alt="Drunk." className="logo" />
+          <img src="/Drunk logo simple trans.png" alt="Drunk." className="logo-small" />
           <button
             className="settings-btn"
             onClick={() => setShowSettings(true)}
@@ -125,7 +134,12 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
 
         {/* Water Glass + Amount */}
         <div className="glass-section">
-          <WaterGlass pct={pct} logCount={logCount} />
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className={glassPopping ? 'glass-pop' : ''}>
+              <WaterGlass pct={pct} logCount={logCount} />
+            </div>
+            {showConfetti && <Confetti />}
+          </div>
 
           <div className="water-amount">
             {config.unit === 'oz'

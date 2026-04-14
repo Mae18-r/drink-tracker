@@ -3,7 +3,7 @@
    hydration, but make it fun.
    ============================================================ */
 
-/* ---------- Google Fonts via index.html (Caveat + Nunito) ---------- */
+/* ---------- Google Fonts: Jua (display) + Fredoka (body) — loaded in index.html ---------- */
 
 /* ---------- Design Tokens ---------- */
 :root {
@@ -12,7 +12,7 @@
   --color-blue: #3148e9;
   --color-blue-light: #dce1fd;
   --color-blue-mid: #8f9ef5;
-  --color-ink: #0f0f0f;
+  --color-ink: #3b3b3b;
   --color-ink-soft: #6b6b6b;
   --color-ink-muted: #b0b0b0;
   --color-success: #2dd4a7;
@@ -20,8 +20,8 @@
   --color-border: #e8e8e6;
 
   /* Typography */
-  --font-display: 'Caveat', cursive;
-  --font-body: 'Nunito', sans-serif;
+  --font-display: 'Jua', sans-serif;
+  --font-body: 'Fredoka', sans-serif;
 
   /* Type scale */
   --text-xs: 12px;
@@ -59,10 +59,7 @@
   padding: 0;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  scroll-behavior: smooth;
-}
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
@@ -74,11 +71,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-}
+#root { min-height: 100dvh; display: flex; flex-direction: column; }
 
 img, svg { display: block; max-width: 100%; }
 
@@ -94,9 +87,10 @@ input { font-family: var(--font-body); }
 
 /* ---------- Logo ---------- */
 .logo {
-  height: 36px;
+  height: 40px;
   width: auto;
   display: block;
+  object-fit: contain;
 }
 
 /* ============================================================
@@ -125,40 +119,36 @@ input { font-family: var(--font-body); }
   100% { transform: scale(1); }
 }
 
-/* Water surface wave — horizontal oscillation */
+/* Water surface wave */
 @keyframes waveSurface {
   0%, 100% { transform: translateX(0); }
   50%       { transform: translateX(-12px); }
 }
+.wave-surface { animation: waveSurface 3s ease-in-out infinite; }
 
-.wave-surface {
-  animation: waveSurface 3s ease-in-out infinite;
+/* ── Celebration: full-screen blue flash ── */
+@keyframes flashPulse {
+  0%   { opacity: 0; }
+  20%  { opacity: 0.12; }
+  100% { opacity: 0; }
 }
 
-/* Celebration dot burst — 6 radial directions */
-@keyframes burstOut1 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(64px, 0) scale(0.5); }
+/* ── Celebration: banner slide-down ── */
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
-@keyframes burstOut2 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(32px, -56px) scale(0.5); }
+
+/* ── Celebration: water drop burst ── */
+@keyframes dropBurst {
+  0%   { opacity: 1; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(0px)   scale(0); }
+  70%  { opacity: 1; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-50px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--drop-angle)) translateY(-60px) scale(0.7); }
 }
-@keyframes burstOut3 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(-32px, -56px) scale(0.5); }
-}
-@keyframes burstOut4 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(-64px, 0) scale(0.5); }
-}
-@keyframes burstOut5 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(-32px, 56px) scale(0.5); }
-}
-@keyframes burstOut6 {
-  0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translate(32px, 56px) scale(0.5); }
+
+@keyframes dropsContainerFade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 /* ============================================================
@@ -193,11 +183,11 @@ input { font-family: var(--font-body); }
   animation: fadeUp 0.4s ease both;
 }
 
+/* Display font — Jua + blue */
 .setup-title {
   font-family: var(--font-display);
-  font-weight: 700;
   font-size: 36px;
-  color: var(--color-ink);
+  color: var(--color-blue);
   line-height: 1.1;
 }
 
@@ -219,7 +209,7 @@ input { font-family: var(--font-body); }
 
 .setup-card-title {
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
 }
@@ -238,7 +228,7 @@ input { font-family: var(--font-body); }
   padding: 8px 0;
   border-radius: var(--radius-pill);
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
   transition: all var(--transition);
@@ -263,17 +253,14 @@ input { font-family: var(--font-body); }
   border: 1.5px solid var(--color-border);
   background: var(--color-surface);
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
   transition: all var(--transition);
   white-space: nowrap;
 }
 
-.preset-pill:hover {
-  border-color: var(--color-blue);
-  color: var(--color-blue);
-}
+.preset-pill:hover { border-color: var(--color-blue); color: var(--color-blue); }
 
 .preset-pill.selected {
   background: var(--color-blue);
@@ -296,8 +283,9 @@ input { font-family: var(--font-body); }
 }
 
 .input-group label {
+  font-family: var(--font-body);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-ink-muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -310,21 +298,16 @@ input { font-family: var(--font-body); }
   background: var(--color-surface);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-ink);
   outline: none;
   transition: border-color var(--transition);
   width: 100%;
 }
 
-.input-field:focus {
-  border-color: var(--color-blue);
-}
+.input-field:focus { border-color: var(--color-blue); }
 
-.input-field::placeholder {
-  color: var(--color-ink-muted);
-  font-weight: 400;
-}
+.input-field::placeholder { color: var(--color-ink-muted); font-weight: 400; }
 
 /* Vessel Chips */
 .vessel-chips {
@@ -345,9 +328,7 @@ input { font-family: var(--font-body); }
   transition: all var(--transition);
 }
 
-.vessel-chip:hover {
-  border-color: var(--color-blue);
-}
+.vessel-chip:hover { border-color: var(--color-blue); }
 
 .vessel-chip.selected {
   background: var(--color-blue-light);
@@ -355,19 +336,19 @@ input { font-family: var(--font-body); }
 }
 
 .vessel-chip-name {
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: var(--text-sm);
   color: var(--color-ink);
 }
 
-.vessel-chip.selected .vessel-chip-name {
-  color: var(--color-blue);
-}
+.vessel-chip.selected .vessel-chip-name { color: var(--color-blue); }
 
 .vessel-chip-size {
+  font-family: var(--font-body);
   font-size: var(--text-xs);
   color: var(--color-ink-muted);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* CTA Button */
@@ -376,23 +357,17 @@ input { font-family: var(--font-body); }
   padding: 16px 32px;
   border-radius: var(--radius-pill);
   background: var(--color-blue);
-  color: var(--color-white);
+  color: #fff;
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-base);
   border: none;
   transition: transform var(--transition), box-shadow var(--transition);
   animation: fadeUp 0.4s ease 320ms both;
 }
 
-.cta-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25);
-}
-
-.cta-btn:active {
-  transform: scale(0.98);
-}
+.cta-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25); }
+.cta-btn:active { transform: scale(0.98); }
 
 .cta-btn:disabled {
   opacity: 0.4;
@@ -435,18 +410,78 @@ input { font-family: var(--font-body); }
   flex-shrink: 0;
 }
 
-.settings-btn:hover {
-  border-color: var(--color-ink-soft);
-  color: var(--color-ink);
-}
+.settings-btn:hover { border-color: var(--color-ink-soft); color: var(--color-ink); }
 
 .today-date {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
   color: var(--color-ink-muted);
-  font-weight: 600;
+  font-weight: 400;
   padding: var(--space-lg) 0 0;
   animation: fadeUp 0.4s ease 80ms both;
 }
+
+/* ── Celebration: flash overlay ── */
+.goal-flash-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-blue);
+  pointer-events: none;
+  z-index: 99;
+  animation: flashPulse 600ms ease-out forwards;
+}
+
+/* ── Celebration: banner ── */
+.celebration-banner {
+  background: var(--color-blue-light);
+  border: 1.5px solid var(--color-blue);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  margin-top: var(--space-lg);
+}
+
+/* Display font: Jua + blue */
+.celebration-heading {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--color-blue);
+  line-height: 1.1;
+}
+
+.celebration-sub {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-ink);
+  line-height: 1.5;
+}
+
+/* ── Celebration: water drop burst ── */
+.drops-container {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  pointer-events: none;
+  z-index: 101;
+  animation: dropsContainerFade 300ms ease-out 1200ms forwards;
+}
+
+.water-drop {
+  position: absolute;
+  animation: dropBurst 600ms ease-out forwards;
+}
+
+.drop-1 { --drop-angle: 0deg;   animation-delay: 0ms;   }
+.drop-2 { --drop-angle: 45deg;  animation-delay: 40ms;  }
+.drop-3 { --drop-angle: 90deg;  animation-delay: 80ms;  }
+.drop-4 { --drop-angle: 135deg; animation-delay: 120ms; }
+.drop-5 { --drop-angle: 180deg; animation-delay: 160ms; }
+.drop-6 { --drop-angle: 225deg; animation-delay: 200ms; }
+.drop-7 { --drop-angle: 270deg; animation-delay: 240ms; }
+.drop-8 { --drop-angle: 315deg; animation-delay: 280ms; }
 
 /* Water Glass Section */
 .glass-section {
@@ -458,67 +493,27 @@ input { font-family: var(--font-body); }
   animation: fadeUp 0.4s ease 160ms both;
 }
 
+/* Display font: Jua + blue */
 .water-amount {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
-  font-weight: 700;
-  color: var(--color-ink);
+  color: var(--color-blue);
   line-height: 1;
 }
 
 .water-amount span {
-  color: var(--color-ink-muted);
-  font-size: 0.55em;
+  color: var(--color-blue-mid);
+  font-size: 0.5em;
 }
 
 .goal-status {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--color-ink-soft);
   text-align: center;
   line-height: 1.4;
 }
-
-/* Celebration state */
-.celebration-heading {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 28px;
-  color: var(--color-ink);
-  text-align: center;
-  animation: bounceIn 0.5s ease both;
-}
-
-.celebration-sub {
-  font-size: var(--text-sm);
-  color: var(--color-ink-soft);
-  text-align: center;
-  line-height: 1.5;
-}
-
-/* Celebration dot burst */
-.burst-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  pointer-events: none;
-  z-index: 100;
-}
-
-.burst-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.burst-dot-1 { background: var(--color-blue);    animation: burstOut1 700ms ease-out forwards; }
-.burst-dot-2 { background: var(--color-success);  animation: burstOut2 700ms ease-out forwards; }
-.burst-dot-3 { background: var(--color-blue);    animation: burstOut3 700ms ease-out forwards; }
-.burst-dot-4 { background: var(--color-success);  animation: burstOut4 700ms ease-out forwards; }
-.burst-dot-5 { background: var(--color-blue);    animation: burstOut5 700ms ease-out forwards; }
-.burst-dot-6 { background: var(--color-success);  animation: burstOut6 700ms ease-out forwards; }
 
 /* Progress Bar */
 .progress-bar-wrap {
@@ -552,22 +547,24 @@ input { font-family: var(--font-body); }
   padding: 16px 32px;
   border-radius: var(--radius-pill);
   background: var(--color-blue);
-  color: var(--color-white);
+  color: #fff;
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-base);
   border: none;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
-.drink-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25);
-}
+.drink-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25); }
+.drink-btn:active { transform: scale(0.98); }
 
-.drink-btn:active {
-  transform: scale(0.98);
+/* Done state — goal reached */
+.drink-btn-done {
+  background: var(--color-success);
+  cursor: default;
+  pointer-events: none;
 }
+.drink-btn-done:hover { transform: none; box-shadow: none; }
 
 .undo-btn {
   background: transparent;
@@ -575,20 +572,14 @@ input { font-family: var(--font-body); }
   color: var(--color-ink-soft);
   font-family: var(--font-body);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 400;
   border-radius: var(--radius-pill);
   padding: 10px 24px;
   transition: border-color var(--transition);
 }
 
-.undo-btn:hover {
-  border-color: var(--color-ink-soft);
-}
-
-.undo-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
+.undo-btn:hover { border-color: var(--color-ink-soft); }
+.undo-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ============================================================
    WATER GLASS SVG
@@ -613,8 +604,9 @@ input { font-family: var(--font-body); }
 }
 
 .week-strip-label {
+  font-family: var(--font-body);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: 500;
   color: var(--color-ink-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -650,33 +642,25 @@ input { font-family: var(--font-body); }
   border-color: var(--color-blue);
 }
 
-.day-pill.goal-met .day-pill-name {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.day-pill.goal-met .day-pill-icon {
-  color: #fff;
-}
-
-.day-pill.goal-met.today {
-  border: 2px solid var(--color-blue);
-}
+.day-pill.goal-met .day-pill-name { color: rgba(255, 255, 255, 0.8); }
+.day-pill.goal-met .day-pill-icon { color: #fff; }
+.day-pill.goal-met.today { border: 2px solid var(--color-blue); }
 
 .day-pill-name {
+  font-family: var(--font-body);
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--color-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.day-pill.today .day-pill-name {
-  color: var(--color-blue);
-}
+.day-pill.today .day-pill-name { color: var(--color-blue); }
 
 .day-pill-icon {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
   color: var(--color-ink);
 }
@@ -688,9 +672,7 @@ input { font-family: var(--font-body); }
   background: var(--color-border);
 }
 
-.day-pill.today .day-pill-dot {
-  background: var(--color-blue);
-}
+.day-pill.today .day-pill-dot { background: var(--color-blue); }
 
 /* ============================================================
    STATS ROW
@@ -717,15 +699,16 @@ input { font-family: var(--font-body); }
 
 .stat-chip-value {
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-lg);
   color: var(--color-blue);
   line-height: 1;
 }
 
 .stat-chip-label {
+  font-family: var(--font-body);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--color-ink-soft);
   line-height: 1.2;
   text-align: center;
@@ -746,15 +729,16 @@ input { font-family: var(--font-body); }
   animation: fadeUp 0.4s ease 480ms both;
 }
 
+/* Display font: Jua + blue */
 .benefit-title {
   font-family: var(--font-display);
-  font-weight: 700;
   font-size: 24px;
-  color: var(--color-ink);
+  color: var(--color-blue);
   line-height: 1.1;
 }
 
 .benefit-text {
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--color-ink);
   line-height: 1.6;
@@ -800,7 +784,7 @@ input { font-family: var(--font-body); }
 
 .modal-title {
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-lg);
   color: var(--color-ink);
 }
@@ -810,15 +794,14 @@ input { font-family: var(--font-body); }
   padding: 10px 20px;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--color-border);
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-weight: 500;
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
   transition: border-color var(--transition);
 }
 
-.modal-close-btn:hover {
-  border-color: var(--color-ink-soft);
-}
+.modal-close-btn:hover { border-color: var(--color-ink-soft); }
 
 .modal-reset-btn {
   padding: 14px;
@@ -826,7 +809,7 @@ input { font-family: var(--font-body); }
   background: var(--color-blue-light);
   color: var(--color-blue);
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-sm);
   transition: all var(--transition);
   border: none;
@@ -834,7 +817,7 @@ input { font-family: var(--font-body); }
 
 .modal-reset-btn:hover {
   background: var(--color-blue);
-  color: var(--color-white);
+  color: #fff;
   box-shadow: 0 4px 20px rgba(49, 72, 233, 0.25);
 }
 

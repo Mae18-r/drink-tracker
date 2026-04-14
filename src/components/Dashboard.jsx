@@ -10,8 +10,9 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
   const pct = config.goal > 0 ? todayAmount / config.goal : 0
 
   const [showSettings, setShowSettings] = useState(false)
-  const [showBurst, setShowBurst] = useState(false)
-  const [justCompleted, setJustCompleted] = useState(false)
+  const [celebrating, setCelebrating] = useState(false)
+  const [showFlash, setShowFlash] = useState(false)
+  const [showDrops, setShowDrops] = useState(false)
   const prevPct = useRef(pct)
 
   // Ensure today exists in history
@@ -21,13 +22,16 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
     }
   }, [todayKey]) // eslint-disable-line
 
-  // Trigger celebration burst when goal first reached
+  // Trigger celebration when goal first reached
   useEffect(() => {
     if (prevPct.current < 1 && pct >= 1) {
-      setJustCompleted(true)
-      setShowBurst(true)
-      setTimeout(() => setShowBurst(false), 800)
-      setTimeout(() => setJustCompleted(false), 4000)
+      setCelebrating(true)
+      setShowFlash(true)
+      setShowDrops(true)
+      // Flash: remove from DOM after animation completes (650ms)
+      setTimeout(() => setShowFlash(false), 650)
+      // Drops: CSS fades them at 1200ms, remove from DOM at 1500ms
+      setTimeout(() => setShowDrops(false), 1500)
     }
     prevPct.current = pct
   }, [pct])
@@ -42,40 +46,54 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
     onUpdateHistory({ ...history, [todayKey]: newAmount })
   }
 
-  // --- Weekly stats ---
+  // Weekly stats
   const weekDays = getWeekDays(todayKey)
   const weekAmounts = weekDays.map(k => history[k] ?? 0)
   const weekTotal = weekAmounts.reduce((s, v) => s + v, 0)
   const goalsHit = weekAmounts.filter(v => v >= config.goal).length
   const weekAvg = Math.round(weekTotal / 7)
 
-  // How many vessels remain
+  // Vessels remaining
   const remaining = Math.max(0, config.goal - todayAmount)
   const vesselsLeft = remaining > 0 ? Math.ceil(remaining / config.vesselSize) : 0
 
-  // Status message
   const getStatusMessage = () => {
+    if (pct >= 1) return null
     if (todayAmount === 0) return "nothing yet. your body is waiting."
     if (vesselsLeft <= 2) return "so close. don't give up now."
     return "you've got this. probably."
   }
 
-  // Format amount for display
   const displayAmount = (val) => {
     if (config.unit === 'oz') return `${val} oz`
     if (val >= 1000) return `${(val / 1000).toFixed(1).replace(/\.0$/, '')} L`
     return `${val} ml`
   }
 
-  const dateLabel = formatDate(todayKey)
+  const statusMsg = getStatusMessage()
 
   return (
     <>
-      {/* CSS-only celebration burst */}
-      {showBurst && (
-        <div className="burst-container" aria-hidden="true">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className={`burst-dot burst-dot-${i}`} />
+      {/* ── Full-screen blue flash pulse ── */}
+      {showFlash && <div className="goal-flash-overlay" aria-hidden="true" />}
+
+      {/* ── Water drop burst (8 teardrop SVGs) ── */}
+      {showDrops && (
+        <div className="drops-container" aria-hidden="true">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className={`water-drop drop-${i}`}>
+              <svg
+                width="8" height="12"
+                viewBox="0 0 8 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4,0 C4,0 8,5.5 8,8 C8,10.2 6.2,12 4,12 C1.8,12 0,10.2 0,8 C0,5.5 4,0 4,0 Z"
+                  fill="#3148e9"
+                />
+              </svg>
+            </div>
           ))}
         </div>
       )}
@@ -93,7 +111,15 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
           </button>
         </div>
 
-        <p className="today-date">{dateLabel}</p>
+        <p className="today-date">{formatDate(todayKey)}</p>
+
+        {/* ── Celebration banner — stays once goal is reached ── */}
+        {celebrating && (
+          <div className="celebration-banner">
+            <p className="celebration-heading">you actually did it.</p>
+            <p className="celebration-sub">your kidneys are throwing a little party right now.</p>
+          </div>
+        )}
 
         {/* Water Glass + Amount */}
         <div className="glass-section">
@@ -122,25 +148,21 @@ export default function Dashboard({ config, history, onUpdateHistory, onReset })
                 style={{ width: `${Math.min(100, Math.round(pct * 100))}%` }}
               />
             </div>
-            <p style={{ fontSize: 12, color: 'var(--color-ink-muted)', fontWeight: 600 }}>
+            <p style={{ fontSize: 12, color: 'var(--color-ink-muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>
               of {displayAmount(config.goal)} goal
             </p>
           </div>
 
-          {pct >= 1 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <p className="celebration-heading">you actually did it.</p>
-              <p className="celebration-sub">your kidneys are throwing a little party right now.</p>
-            </div>
-          ) : (
-            <p className="goal-status">{getStatusMessage()}</p>
-          )}
+          {statusMsg && <p className="goal-status">{statusMsg}</p>}
         </div>
 
         {/* Drink CTA */}
         <div className="drink-cta-wrap">
-          <button className="drink-btn" onClick={handleDrink}>
-            + I drank my {config.vesselName}
+          <button
+            className={`drink-btn${celebrating ? ' drink-btn-done' : ''}`}
+            onClick={handleDrink}
+          >
+            {celebrating ? "you're done for today." : `+ I drank my ${config.vesselName}`}
           </button>
           <button
             className="undo-btn"
@@ -201,12 +223,12 @@ function SettingsModal({ config, onClose, onReset }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <InfoRow label="Daily goal" value={config.unit === 'oz' ? `${config.goal} oz` : `${config.goal} ml`} />
-          <InfoRow label="Unit" value={config.unit === 'oz' ? 'fl oz' : 'ml / L'} />
-          <InfoRow label="Vessel" value={`${config.vesselName} (${config.unit === 'oz' ? config.vesselSize + ' oz' : config.vesselSize + ' ml'})`} />
+          <InfoRow label="Unit"       value={config.unit === 'oz' ? 'fl oz' : 'ml / L'} />
+          <InfoRow label="Vessel"     value={`${config.vesselName} (${config.unit === 'oz' ? config.vesselSize + ' oz' : config.vesselSize + ' ml'})`} />
         </div>
 
         <button className="modal-reset-btn" onClick={handleReset}>
-          Reset & start over
+          Reset &amp; start over
         </button>
 
         <button className="modal-close-btn" onClick={onClose}>
@@ -226,8 +248,8 @@ function InfoRow({ label, value }) {
       padding: '12px 0',
       borderBottom: '1px solid var(--color-border)',
     }}>
-      <span style={{ fontSize: 14, color: 'var(--color-ink-soft)', fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-ink)' }}>{value}</span>
+      <span style={{ fontSize: 14, color: 'var(--color-ink-soft)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>{value}</span>
     </div>
   )
 }

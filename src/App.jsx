@@ -33,8 +33,10 @@ async function saveToSupabase(date, amount, config) {
       }, { onConflict: 'date' })
 
     if (error) throw error
+    console.log('Supabase save success')
   } catch (err) {
     console.warn('Supabase save error:', err)
+    console.log('Supabase save error — full object:', JSON.stringify(err, null, 2))
   }
 }
 

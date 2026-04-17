@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import SetupScreen from './components/SetupScreen.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import BackgroundSwirls from './components/BackgroundSwirls.jsx'
+import { supabase } from './supabase.js'
 
 const STORAGE_KEY = 'drink_tracker_data'
 
@@ -18,14 +19,60 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
+async function saveToSupabase(date, amount, config) {
+  const { error } = await supabase
+    .from('water_logs')
+    .upsert({
+      date,
+      amount,
+      goal: config.goal,
+      container_size: config.vesselSize,
+      container_name: config.vesselName,
+      goal_unit: config.unit,
+    }, { onConflict: 'date' })
+
+  if (error) console.error('Supabase save error:', error)
+}
+
+async function loadFromSupabase() {
+  const { data, error } = await supabase
+    .from('water_logs')
+    .select('*')
+    .order('date', { ascending: false })
+    .limit(30)
+
+  if (error) {
+    console.error('Supabase load error:', error)
+    return null
+  }
+
+  const history = {}
+  data.forEach(row => { history[row.date] = row.amount })
+  return history
+}
+
 export default function App() {
   const [appData, setAppData] = useState(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const stored = loadData()
-    setAppData(stored)
-    setReady(true)
+
+    if (stored?.config) {
+      loadFromSupabase().then(supabaseHistory => {
+        if (supabaseHistory) {
+          const merged = { ...stored, history: { ...stored.history, ...supabaseHistory } }
+          saveData(merged)
+          setAppData(merged)
+        } else {
+          setAppData(stored)
+        }
+        setReady(true)
+      })
+    } else {
+      setAppData(stored)
+      setReady(true)
+    }
   }, [])
 
   const handleSetupComplete = (config) => {
@@ -42,6 +89,10 @@ export default function App() {
     const updated = { ...appData, history: newHistory }
     saveData(updated)
     setAppData(updated)
+    const todayKey = getTodayKey()
+    if (todayKey in newHistory) {
+      saveToSupabase(todayKey, newHistory[todayKey], appData.config)
+    }
   }
 
   const handleReset = () => {
@@ -49,7 +100,14 @@ export default function App() {
     setAppData(null)
   }
 
-  if (!ready) return null
+  if (!ready) return (
+    <>
+      <BackgroundSwirls />
+      <div className="app-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh' }}>
+        <p style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink-soft)', fontSize: '16px' }}>loading...</p>
+      </div>
+    </>
+  )
 
   return (
     <>
